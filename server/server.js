@@ -32,10 +32,6 @@ app.use(helmet());
 // CORS
 // ===============================
 
-// ===============================
-// CORS
-// ===============================
-
 const allowedOrigins = [
   "http://localhost:5173",
   "https://shop-flow-a5aw.vercel.app",
@@ -71,6 +67,7 @@ app.use((req, res, next) => {
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Allow requests without an Origin header
       if (!origin) {
         return callback(null, true);
       }
@@ -81,7 +78,9 @@ app.use(
 
       return callback(new Error("Not allowed by CORS"));
     },
+
     credentials: true,
+
     methods: [
       "GET",
       "POST",
@@ -90,12 +89,14 @@ app.use(
       "DELETE",
       "OPTIONS",
     ],
+
     allowedHeaders: [
       "Content-Type",
       "Authorization",
     ],
   })
 );
+
 // ===============================
 // Body Parser
 // ===============================
@@ -136,6 +137,17 @@ app.get("/", (req, res) => {
 });
 
 // ===============================
+// Health Check
+// ===============================
+
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "ShopFlow backend is working",
+  });
+});
+
+// ===============================
 // 404 Handler
 // ===============================
 
@@ -155,12 +167,6 @@ app.use(errorHandler);
 // ===============================
 // Start Server
 // ===============================
-
-// const PORT = process.env.PORT || 5000;
-
-// app.listen(PORT, "0.0.0.0", () => {
-//   console.log(`Server running on port ${PORT}`);
-// });
 
 const PORT = process.env.PORT || 5000;
 
