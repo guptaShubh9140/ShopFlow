@@ -32,15 +32,45 @@ app.use(helmet());
 // CORS
 // ===============================
 
+// ===============================
+// CORS
+// ===============================
+
 const allowedOrigins = [
   "http://localhost:5173",
   "https://shop-flow-a5aw.vercel.app",
 ];
 
+// Handle CORS preflight requests explicitly
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    const origin = req.headers.origin;
+
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader(
+        "Access-Control-Allow-Methods",
+        "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+      );
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type,Authorization"
+      );
+
+      return res.status(204).end();
+    }
+
+    return res.status(403).end();
+  }
+
+  next();
+});
+
+// Normal CORS handling
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests without an Origin header
       if (!origin) {
         return callback(null, true);
       }
@@ -51,9 +81,7 @@ app.use(
 
       return callback(new Error("Not allowed by CORS"));
     },
-
     credentials: true,
-
     methods: [
       "GET",
       "POST",
@@ -62,7 +90,6 @@ app.use(
       "DELETE",
       "OPTIONS",
     ],
-
     allowedHeaders: [
       "Content-Type",
       "Authorization",
