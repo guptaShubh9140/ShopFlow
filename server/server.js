@@ -16,11 +16,17 @@ const errorHandler = require("./middleware/errorMiddleware");
 // Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
-connectDB();
+// ===============================
+// Create Express App
+// ===============================
 
-// Create Express app
 const app = express();
+
+// ===============================
+// Connect MongoDB
+// ===============================
+
+connectDB();
 
 // ===============================
 // Security Middleware
@@ -37,37 +43,10 @@ const allowedOrigins = [
   "https://shop-flow-a5aw.vercel.app",
 ];
 
-// Handle CORS preflight requests explicitly
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    const origin = req.headers.origin;
-
-    if (allowedOrigins.includes(origin)) {
-      res.setHeader("Access-Control-Allow-Origin", origin);
-      res.setHeader("Access-Control-Allow-Credentials", "true");
-      res.setHeader(
-        "Access-Control-Allow-Methods",
-        "GET,POST,PUT,PATCH,DELETE,OPTIONS"
-      );
-      res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Content-Type,Authorization"
-      );
-
-      return res.status(204).end();
-    }
-
-    return res.status(403).end();
-  }
-
-  next();
-});
-
-// Normal CORS handling
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests without an Origin header
+      // Allow requests such as curl/Postman/server-to-server
       if (!origin) {
         return callback(null, true);
       }
@@ -75,6 +54,8 @@ app.use(
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
+
+      console.log("CORS blocked origin:", origin);
 
       return callback(new Error("Not allowed by CORS"));
     },
@@ -115,6 +96,41 @@ app.use(
 );
 
 // ===============================
+// Request Logger
+// ===============================
+
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
+
+// ===============================
+// Health Check
+// ===============================
+
+app.get("/health", (req, res) => {
+  console.log("HEALTH ENDPOINT HIT");
+
+  res.status(200).json({
+    success: true,
+    message: "ShopFlow backend is working",
+  });
+});
+
+// ===============================
+// Home Route
+// ===============================
+
+app.get("/", (req, res) => {
+  console.log("HOME ENDPOINT HIT");
+
+  res.status(200).json({
+    success: true,
+    message: "ShopFlow API is running",
+  });
+});
+
+// ===============================
 // API Routes
 // ===============================
 
@@ -127,32 +143,18 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 
 // ===============================
-// Home Route
-// ===============================
-
-app.get("/", (req, res) => {
-  res.status(200).json({
-    message: "ShopFlow API is running",
-  });
-});
-
-// ===============================
-// Health Check
-// ===============================
-
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "ShopFlow backend is working",
-  });
-});
-
-// ===============================
 // 404 Handler
+// IMPORTANT: Keep this AFTER
+// all valid routes
 // ===============================
 
 app.use((req, res) => {
+  console.log(
+    `404 - Route not found: ${req.method} ${req.originalUrl}`
+  );
+
   res.status(404).json({
+    success: false,
     message: `Route not found: ${req.method} ${req.originalUrl}`,
   });
 });
@@ -170,8 +172,12 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-console.log("RENDER PORT:", process.env.PORT);
+console.log("-----------------------------------");
+console.log("Starting ShopFlow backend...");
+console.log("Environment:", process.env.NODE_ENV || "development");
+console.log("PORT:", PORT);
+console.log("-----------------------------------");
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`ShopFlow server running on port ${PORT}`);
 });
