@@ -34,6 +34,7 @@ app.use(helmet());
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://shop-flow-a5aw.vercel.app",
 ];
 
 app.use(
