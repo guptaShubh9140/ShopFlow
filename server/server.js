@@ -40,8 +40,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests without an origin
-      // (Postman, server-to-server requests, etc.)
+      // Allow requests without an Origin header
       if (!origin) {
         return callback(null, true);
       }
@@ -52,7 +51,22 @@ app.use(
 
       return callback(new Error("Not allowed by CORS"));
     },
+
     credentials: true,
+
+    methods: [
+      "GET",
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE",
+      "OPTIONS",
+    ],
+
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+    ],
   })
 );
 // ===============================
